@@ -1,17 +1,33 @@
-from openai import OpenAI
-import os
-import dotenv
+import speech_recognition as sr
 
-dotenv.load_dotenv()
+def speech_to_text_and_save():
+    recognizer = sr.Recognizer()
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    with sr.Microphone() as source:
+        print("|---------------|\n"
+              "|Say something: |\n"
+              "|---------------|")
+        recognizer.adjust_for_ambient_noise(source)
+        audio = recognizer.listen(source, timeout=5)
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+    try:
+        print("|---------------|\n"
+              "|Recognizing... |\n"
+              "|---------------|")
+        text = recognizer.recognize_google(audio)
+        print(f"Text: {text}")
 
-audio_file= open("/Users/fatih/Desktop/Necmi Hoşver Cd..m4a", "rb")
-transcription = client.audio.transcriptions.create(
-    model="whisper-1",
-    file=audio_file
-)
+        with open("transcribed_text.txt", "w") as file:
+            file.write(text)
+            print("|------------------------------------------------|\n"
+                  "|Transcribed text saved to transcribed_text.txt  |\n"
+                  "|------------------------------------------------|")
+    except sr.UnknownValueError:
+        print("|----------------------------|\n"
+              "|Could not understand audio. |\n"
+              "|----------------------------|")
+    except sr.RequestError as e:
+        print(f"Error connecting to Google API: {e}")
 
-print(transcription.text)
+if __name__ == "__main__":
+    speech_to_text_and_save()
